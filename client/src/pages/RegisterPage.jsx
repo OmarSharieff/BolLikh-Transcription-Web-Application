@@ -2,24 +2,22 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Headphones } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import { toast } from 'react-toastify';
 
-export const LoginPage = () => {
+export const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signIn, isLoading, error } = useAuthStore();
+  const [fullName, setFullName] = useState('');
+  const { signUp, isLoading, error } = useAuthStore();
   const navigate = useNavigate();
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      useAuthStore.setState({ error: null }); // Reset error state before login attempt
-      await signIn(email, password);
-      toast.success('Successfully signed in!'); 
+      await signUp(email, password, fullName);
       navigate('/dashboard');
     } catch (err) {
-      toast.error(err.message || 'Login failed. Please try again.'); 
+      console.error('Registration error:', err);
     }
   };
   
@@ -31,9 +29,9 @@ export const LoginPage = () => {
             <Headphones className="h-6 w-6 text-primary" />
             <span>AudioScribe</span>
           </Link>
-          <h1 className="mt-4 text-2xl font-bold">Sign In</h1>
+          <h1 className="mt-4 text-2xl font-bold">Create an Account</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Enter your credentials to access your account
+            Sign up to start transcribing your audio
           </p>
         </div>
         
@@ -44,6 +42,21 @@ export const LoginPage = () => {
         )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="fullName" className="block text-sm font-medium">
+              Full Name
+            </label>
+            <input
+              id="fullName"
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Enter your full name"
+              required
+            />
+          </div>
+          
           <div>
             <label htmlFor="email" className="block text-sm font-medium">
               Email
@@ -56,29 +69,26 @@ export const LoginPage = () => {
               className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Enter your email"
               required
-              autoComplete="email" // ✅ Autofill support
             />
           </div>
           
           <div>
-            <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-sm font-medium">
-                Password
-              </label>
-              <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-                Forgot password?
-              </Link>
-            </div>
+            <label htmlFor="password" className="block text-sm font-medium">
+              Password
+            </label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="Enter your password"
+              placeholder="Create a password"
               required
-              autoComplete="current-password" // ✅ Autofill support
+              minLength={6}
             />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Password must be at least 6 characters long
+            </p>
           </div>
           
           <button
@@ -86,15 +96,15 @@ export const LoginPage = () => {
             disabled={isLoading}
             className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
         
         <div className="mt-6 text-center text-sm">
           <p className="text-muted-foreground">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-primary hover:underline">
-              Sign up
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary hover:underline">
+              Sign in
             </Link>
           </p>
         </div>
