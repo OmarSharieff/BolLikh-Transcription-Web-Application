@@ -62,10 +62,9 @@ export const HomePage = () => {
                 <div className="mb-4 inline-flex rounded-md bg-primary/10 p-3 text-primary">
                   <MessageSquare className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-medium">Multiple API Options</h3>
+                <h3 className="text-xl font-medium">Realtime Transcription</h3>
                 <p className="mt-2 text-muted-foreground">
-                  Choose from OpenAI Whisper, Google Speech-to-Text, or Mozilla DeepSpeech for
-                  transcription.
+                  Leverages Deepgram to get transcription data from live streaming audio in real time.
                 </p>
               </div>
               
