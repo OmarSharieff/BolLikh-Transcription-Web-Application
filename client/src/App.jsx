@@ -1,35 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { HomePage } from './pages/HomePage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { NewTranscriptionPage } from './pages/NewTranscriptionPage';
+import { TranscriptionDetailPage } from './pages/TranscriptionDetailPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { useAuthStore } from './store/useAuthStore';
+import { useThemeStore } from './store/useThemeStore';
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  const { getUser } = useAuthStore();
+  const { theme } = useThemeStore();
+  
+  useEffect(() => {
+    getUser();
+  }, [getUser]);
+  
+  useEffect(() => {
+    const root = window.document.documentElement;
+    
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
+  
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      
+      <Route 
+        path="/dashboard" 
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/new-transcription" 
+        element={
+          <ProtectedRoute>
+            <NewTranscriptionPage />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/transcription/:id" 
+        element={
+          <ProtectedRoute>
+            <TranscriptionDetailPage />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route path="/404" element={<NotFoundPage />} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
