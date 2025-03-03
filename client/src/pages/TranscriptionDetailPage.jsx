@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft, Download, FileAudio, Pencil } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
