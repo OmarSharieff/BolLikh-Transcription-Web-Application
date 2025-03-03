@@ -8,8 +8,8 @@ import { NewTranscriptionPage } from './pages/NewTranscriptionPage';
 import { TranscriptionDetailPage } from './pages/TranscriptionDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { useAuthStore } from './store/useAuthStore';
-import { useThemeStore } from './store/useThemeStore';
+import { useAuthStore } from './store/useAuthStore.js';
+import { useThemeStore } from './store/useThemeStore.js';
 
 function App() {
   const { getUser } = useAuthStore();
