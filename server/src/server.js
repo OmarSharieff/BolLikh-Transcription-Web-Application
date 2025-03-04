@@ -24,7 +24,7 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 // Necessary middleware setup
-app.use(helmet()); // Security headers
+app.use(helmet()); // for security headers
 app.use(cors());   // Enable CORS for all routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
