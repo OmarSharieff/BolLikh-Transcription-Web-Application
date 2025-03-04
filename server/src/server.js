@@ -8,7 +8,9 @@ import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import transcriptionRoutes from './routes/transcription.js';
 
-dotenv.config();
+dotenv.config({
+  path: "../.env"
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
