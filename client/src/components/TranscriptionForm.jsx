@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 import { AudioRecorder } from './AudioRecorder';
@@ -8,7 +8,6 @@ export const TranscriptionForm = () => {
   const [title, setTitle] = useState('');
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioDuration, setAudioDuration] = useState(null);
-  const [apiProvider, setApiProvider] = useState('openai');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createTranscription } = useTranscriptionStore();
   const navigate = useNavigate();
@@ -42,7 +41,6 @@ export const TranscriptionForm = () => {
       const formData = new FormData();
       formData.append('audio', audioBlob);
       formData.append('title', title);
-      formData.append('apiProvider', apiProvider);
       
       const response = await fetch('http://localhost:3000/api/transcribe', {
         method: 'POST',
@@ -59,7 +57,7 @@ export const TranscriptionForm = () => {
       const transcription = await createTranscription(
         title,
         data.transcription,
-        apiProvider,
+        'deepgram',
         data.audioUrl,
         audioDuration
       );
@@ -110,47 +108,6 @@ export const TranscriptionForm = () => {
             )}
           </div>
         )}
-      </div>
-      
-      <div>
-        <label className="block text-sm font-medium">Transcription API</label>
-        <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-input bg-background p-3 text-sm hover:bg-secondary/50">
-            <input
-              type="radio"
-              name="apiProvider"
-              value="openai"
-              checked={apiProvider === 'openai'}
-              onChange={() => setApiProvider('openai')}
-              className="h-4 w-4 text-primary"
-            />
-            <span>OpenAI Whisper</span>
-          </label>
-          
-          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-input bg-background p-3 text-sm hover:bg-secondary/50">
-            <input
-              type="radio"
-              name="apiProvider"
-              value="google"
-              checked={apiProvider === 'google'}
-              onChange={() => setApiProvider('google')}
-              className="h-4 w-4 text-primary"
-            />
-            <span>Google Speech-to-Text</span>
-          </label>
-          
-          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-input bg-background p-3 text-sm hover:bg-secondary/50">
-            <input
-              type="radio"
-              name="apiProvider"
-              value="mozilla"
-              checked={apiProvider === 'mozilla'}
-              onChange={() => setApiProvider('mozilla')}
-              className="h-4 w-4 text-primary"
-            />
-            <span>Mozilla DeepSpeech</span>
-          </label>
-        </div>
       </div>
       
       <button

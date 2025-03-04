@@ -65,7 +65,7 @@ export const TranscriptionItem = ({ transcription }) => {
       
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
         <span>Created: {formatDate(transcription.created_at)}</span>
-        <span>API: {transcription.api_used}</span>
+        <span>API: deepgram</span>
         {transcription.duration && (
           <span>Duration: {formatDuration(transcription.duration)}</span>
         )}
