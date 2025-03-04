@@ -1,13 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { fileURLToPath } from 'url';
 import deepgram from '../config/deepgram.js';
 import supabase from '../lib/supabase.js';
-
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Transcribe audio using Deepgram
 const transcribeAudio = async (filePath) => {
