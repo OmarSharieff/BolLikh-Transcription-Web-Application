@@ -1,210 +1,110 @@
-import fs from 'fs';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import supabase from '../config/supabase.js';
 import deepgram from '../config/deepgram.js';
-import supabase from '../lib/supabase.js';
 
-// Transcribe audio using Deepgram
-const transcribeAudio = async (filePath) => {
+export const createTranscription = async (userId, title, audioBuffer, duration) => {
   try {
-    const transcription = await transcribeWithDeepgram(filePath);
-    return transcription;
-  } catch (error) {
-    console.error('Transcription error:', error);
-    throw new Error(`Failed to transcribe audio: ${error.message}`);
-  }
-};
+    console.log('Received audio buffer size:', audioBuffer.length);
 
-// Transcribe with Deepgram v3 API
-const transcribeWithDeepgram = async (filePath) => {
-  try {
-    const audio = fs.readFileSync(filePath);
-    const mimetype = getMimeType(filePath);
-
-    const source = {
-      buffer: audio,
-      mimetype: mimetype
-    };
-
+    // ✅ Send raw buffer to Deepgram
     const response = await deepgram.listen.prerecorded.transcribeFile(
-      source,
+      {
+        stream: audioBuffer, // ✅ Send raw audio buffer
+        mimetype: 'audio/wav',
+      },
       {
         smart_format: true,
         punctuate: true,
-        diarize: true
+        diarize: true,
       }
     );
 
-    if (!response || !response.results || !response.results.channels || !response.results.channels[0]) {
-      throw new Error('Invalid response from Deepgram API');
+    console.log('Deepgram API Response:', JSON.stringify(response, null, 2));
+
+    if (!response.results || !response.results.channels) {
+      throw new Error('Unexpected response from Deepgram API');
     }
 
-    // Extract transcript from the response
     const transcript = response.results.channels[0].alternatives[0].transcript;
-    return transcript;
-  } catch (error) {
-    console.error('Deepgram transcription error:', error);
-    throw new Error(`Deepgram transcription failed: ${error.message}`);
-  }
-};
 
-// Save transcription to database
-const saveTranscription = async (userId, title, content, audioUrl, duration) => {
-  try {
+    // Save transcription to database
     const { data, error } = await supabase
       .from('transcriptions')
       .insert([
         {
           user_id: userId,
           title,
-          content,
+          transcript,
+          duration,
           api_used: 'deepgram',
-          audio_url: audioUrl,
-          duration
-        }
+        },
       ])
       .select();
 
     if (error) {
-      console.error('Database error:', error);
-      throw new Error(`Failed to save transcription: ${error.message}`);
+      throw new Error(error.message);
     }
 
     return data[0];
   } catch (error) {
-    console.error('Save transcription error:', error);
-    throw new Error(`Failed to save transcription: ${error.message}`);
+    console.error('Deepgram Transcription Error:', error.message);
+    throw new Error('Deepgram API failed: ' + error.message);
   }
 };
 
-// Get user transcriptions
-const getUserTranscriptions = async (userId) => {
-  try {
-    const { data, error } = await supabase
-      .from('transcriptions')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Database error:', error);
-      throw new Error(`Failed to get transcriptions: ${error.message}`);
-    }
 
-    return data;
-  } catch (error) {
-    console.error('Get transcriptions error:', error);
-    throw new Error(`Failed to get transcriptions: ${error.message}`);
+export const getTranscriptions = async (userId) => {
+  const { data, error } = await supabase
+    .from('transcriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
   }
+
+  return data;
 };
 
-// Get single transcription
-const getTranscription = async (transcriptionId, userId) => {
-  try {
-    const { data, error } = await supabase
-      .from('transcriptions')
-      .select('*')
-      .eq('id', transcriptionId)
-      .eq('user_id', userId)
-      .single();
+export const getTranscriptionById = async (id, userId) => {
+  const { data, error } = await supabase
+    .from('transcriptions')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', userId)
+    .single();
 
-    if (error) {
-      console.error('Database error:', error);
-      throw new Error(`Failed to get transcription: ${error.message}`);
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Get transcription error:', error);
-    throw new Error(`Failed to get transcription: ${error.message}`);
+  if (error) {
+    throw new Error(error.message);
   }
+
+  return data;
 };
 
-// Delete transcription
-const deleteTranscription = async (transcriptionId, userId) => {
-  try {
-    // Get the transcription first to get the audio URL
-    const transcription = await getTranscription(transcriptionId, userId);
+export const updateTranscription = async (id, userId, updates) => {
+  const { data, error } = await supabase
+    .from('transcriptions')
+    .update(updates)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select();
 
-    // Delete from database
-    const { error } = await supabase
-      .from('transcriptions')
-      .delete()
-      .eq('id', transcriptionId)
-      .eq('user_id', userId);
-
-    if (error) {
-      console.error('Database error:', error);
-      throw new Error(`Failed to delete transcription: ${error.message}`);
-    }
-
-    // Delete audio file
-    if (transcription && transcription.audio_url) {
-      try {
-        const filePath = path.join(process.env.AUDIO_UPLOAD_DIR, path.basename(transcription.audio_url));
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      } catch (fileError) {
-        console.error('Error deleting audio file:', fileError);
-        // Continue even if file deletion fails
-      }
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Delete transcription error:', error);
-    throw new Error(`Failed to delete transcription: ${error.message}`);
+  if (error) {
+    throw new Error(error.message);
   }
+
+  return data[0];
 };
 
-// Helper function to get MIME type based on file extension
-const getMimeType = (filePath) => {
-  const ext = path.extname(filePath).toLowerCase();
+export const deleteTranscription = async (id, userId) => {
+  const { error } = await supabase
+    .from('transcriptions')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId);
 
-  switch (ext) {
-    case '.mp3':
-      return 'audio/mpeg';
-    case '.wav':
-      return 'audio/wav';
-    case '.ogg':
-      return 'audio/ogg';
-    case '.m4a':
-      return 'audio/m4a';
-    case '.flac':
-      return 'audio/flac';
-    default:
-      return 'audio/mpeg'; // Default
+  if (error) {
+    throw new Error(error.message);
   }
-};
-
-// Save audio file
-const saveAudioFile = async (file) => {
-  try {
-    const ext = path.extname(file.originalname);
-    const fileName = `${uuidv4()}${ext}`;
-    const filePath = path.join(process.env.AUDIO_UPLOAD_DIR, fileName);
-
-    // Save the file
-    fs.writeFileSync(filePath, file.buffer);
-
-    // Return the file path
-    return {
-      filePath,
-      fileName,
-      fileUrl: `/uploads/${fileName}`
-    };
-  } catch (error) {
-    console.error('Save audio file error:', error);
-    throw new Error(`Failed to save audio file: ${error.message}`);
-  }
-};
-
-export {
-  transcribeAudio,
-  saveTranscription,
-  getUserTranscriptions,
-  getTranscription,
-  deleteTranscription,
-  saveAudioFile
 };
