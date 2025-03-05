@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router-dom'; // Ensure correct import
 import { Headphones } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { toast } from 'react-toastify';
@@ -9,20 +9,44 @@ export const LoginPage = () => {
   const [password, setPassword] = useState('');
   const { signIn, isLoading, error } = useAuthStore();
   const navigate = useNavigate();
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       useAuthStore.setState({ error: null }); // Reset error state before login attempt
       await signIn(email, password);
-      toast.success('Successfully signed in!'); 
+      toast.success('Successfully signed in!');
       navigate('/dashboard');
     } catch (err) {
-      toast.error(err.message || 'Login failed. Please try again.'); 
+      if (err.message === 'Please confirm your email address before signing in.') {
+        toast.error(
+          <div>
+            Please confirm your email address before signing in.{' '}
+            <button
+              onClick={async () => {
+                try {
+                  await supabase.auth.resend({
+                    type: 'signup',
+                    email: email,
+                  });
+                  toast.success('Confirmation email resent!');
+                } catch (resendError) {
+                  toast.error('Failed to resend confirmation email.');
+                }
+              }}
+              className="ml-2 text-primary hover:underline"
+            >
+              Resend confirmation email
+            </button>
+          </div>
+        );
+      } else {
+        toast.error(err.message || 'Login failed. Please try again.');
+      }
     }
   };
-  
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-secondary/20 p-4">
       <div className="w-full max-w-md rounded-lg border border-border bg-card p-8 shadow-sm">
@@ -36,13 +60,13 @@ export const LoginPage = () => {
             Enter your credentials to access your account
           </p>
         </div>
-        
+
         {error && (
           <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium">
@@ -56,10 +80,10 @@ export const LoginPage = () => {
               className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Enter your email"
               required
-              autoComplete="email" // ✅ Autofill support
+              autoComplete="email"
             />
           </div>
-          
+
           <div>
             <div className="flex items-center justify-between">
               <label htmlFor="password" className="block text-sm font-medium">
@@ -77,10 +101,10 @@ export const LoginPage = () => {
               className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Enter your password"
               required
-              autoComplete="current-password" // ✅ Autofill support
+              autoComplete="current-password"
             />
           </div>
-          
+
           <button
             type="submit"
             disabled={isLoading}
@@ -89,7 +113,7 @@ export const LoginPage = () => {
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        
+
         <div className="mt-6 text-center text-sm">
           <p className="text-muted-foreground">
             Don't have an account?{' '}

@@ -9,20 +9,22 @@ export const useAuthStore = create((set) => ({
   getUser: async () => {
     try {
       set({ isLoading: true, error: null });
-
+  
       const { data: { session } } = await supabase.auth.getSession();
-
+  
       if (!session) {
         set({ user: null, isLoading: false });
         return;
       }
-
-      const { data: profile } = await supabase
+  
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
-
+  
+      if (profileError) throw profileError;
+  
       set({
         user: {
           id: session.user.id,
@@ -47,7 +49,13 @@ export const useAuthStore = create((set) => ({
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message === 'Email not confirmed') {
+          throw new Error('Please confirm your email address before signing in.');
+        } else {
+          throw error;
+        }
+      }
 
       if (data.user) {
         const { data: profile } = await supabase
@@ -68,7 +76,8 @@ export const useAuthStore = create((set) => ({
       }
     } catch (error) {
       console.error('Error signing in:', error);
-      set({ error: error.message || 'Failed to sign in', isLoading: false });
+      set({ error: error?.message || 'Failed to sign in', isLoading: false });
+      throw error;
     }
   },
 
@@ -89,7 +98,6 @@ export const useAuthStore = create((set) => ({
       if (error) throw error;
 
       if (data.user) {
-        // Create profile
         await supabase.from('profiles').insert({
           id: data.user.id,
           full_name: fullName,
@@ -107,7 +115,7 @@ export const useAuthStore = create((set) => ({
       }
     } catch (error) {
       console.error('Error signing up:', error);
-      set({ error: error.message || 'Failed to sign up', isLoading: false });
+      set({ error: error?.message || 'Failed to sign up', isLoading: false });
     }
   },
 
@@ -122,7 +130,7 @@ export const useAuthStore = create((set) => ({
       set({ user: null, isLoading: false });
     } catch (error) {
       console.error('Error signing out:', error);
-      set({ error: error.message || 'Failed to sign out', isLoading: false });
+      set({ error: error?.message || 'Failed to sign out', isLoading: false });
     }
   },
 }));

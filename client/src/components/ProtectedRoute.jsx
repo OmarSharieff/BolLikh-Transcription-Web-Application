@@ -1,15 +1,11 @@
-import React, { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router';
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 
 export const ProtectedRoute = ({ children }) => {
-  const { user, isLoading, getUser } = useAuthStore();
+  const { user, isLoading } = useAuthStore(); // Remove `getUser` from destructuring
   const location = useLocation();
-  
-  useEffect(() => {
-    getUser();
-  }, [getUser]);
-  
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -20,10 +16,10 @@ export const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  
+
   return <>{children}</>;
 };

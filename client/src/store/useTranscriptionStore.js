@@ -11,9 +11,18 @@ export const useTranscriptionStore = create((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
+      // Fetch the current user's session
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('No session found. Please log in.');
+      }
+
+      // Fetch transcriptions for the current user
       const { data, error } = await supabase
         .from('transcriptions')
         .select('*')
+        .eq('user_id', session.user.id) // Filter by the current user's ID
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -44,39 +53,38 @@ export const useTranscriptionStore = create((set, get) => ({
     }
   },
 
-  createTranscription: async (title, content, apiUsed, audioUrl, duration) => {
+  createTranscription: async (title, transcript, apiUsed, duration) => {
     try {
       set({ isLoading: true, error: null });
-
+  
       const { data: userData } = await supabase.auth.getUser();
-
+  
       if (!userData.user) {
         throw new Error('User not authenticated');
       }
-
+  
       const newTranscription = {
         title,
-        content,
+        transcript, // Changed from 'content' to 'transcript'
         api_used: apiUsed,
-        audio_url: audioUrl || null,
         user_id: userData.user.id,
         duration: duration || null,
       };
-
+  
       const { data, error } = await supabase
         .from('transcriptions')
         .insert(newTranscription)
         .select()
         .single();
-
+  
       if (error) throw error;
-
+  
       const transcriptions = get().transcriptions;
       set({
         transcriptions: [data, ...transcriptions],
         isLoading: false,
       });
-
+  
       return data;
     } catch (error) {
       console.error('Error creating transcription:', error);
@@ -84,7 +92,7 @@ export const useTranscriptionStore = create((set, get) => ({
       return null;
     }
   },
-
+  
   deleteTranscription: async (id) => {
     try {
       set({ isLoading: true, error: null });

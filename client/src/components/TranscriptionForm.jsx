@@ -1,67 +1,85 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { toast } from 'react-toastify';
-import { AudioRecorder } from './AudioRecorder';
-import { useTranscriptionStore } from '../store/useTranscriptionStore';
+import { supabase } from "../lib/supabase"; 
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
+import { AudioRecorder } from "./AudioRecorder";
+import { useTranscriptionStore } from "../store/useTranscriptionStore";
+
+const API_URL = "http://localhost:3000";
 
 export const TranscriptionForm = () => {
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState("");
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioDuration, setAudioDuration] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createTranscription } = useTranscriptionStore();
   const navigate = useNavigate();
-  
+
   const handleAudioReady = (blob, duration) => {
     setAudioBlob(blob);
     setAudioDuration(duration);
-    
+
     if (!title) {
       const now = new Date();
-      setTitle(`Transcription ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`);
+      setTitle(
+        `Transcription ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`
+      );
     }
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+  
     if (!audioBlob) {
       toast.error('Please record or upload audio first');
       return;
     }
-    
+  
     if (!title) {
       toast.error('Please enter a title');
       return;
     }
-    
+  
     try {
       setIsSubmitting(true);
-      
+  
+      // ✅ Send the raw Blob instead of Base64
       const formData = new FormData();
-      formData.append('audio', audioBlob);
-      formData.append('title', title);
-      
-      const response = await fetch('http://localhost:3000/api/transcribe', {
+      formData.append("audio", audioBlob, "recording.wav");
+      formData.append("title", title);
+      formData.append("duration", audioDuration);
+  
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+  
+      if (!token) {
+        toast.error('You must be logged in to transcribe audio.');
+        setIsSubmitting(false);
+        return;
+      }
+  
+      const response = await fetch(`${API_URL}/api/transcriptions`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`, // Keep Auth header
+        },
+        body: formData, // ✅ Send as FormData instead of JSON
       });
-      
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to transcribe audio');
       }
-      
+  
       const data = await response.json();
-      
+  
       const transcription = await createTranscription(
         title,
-        data.transcription,
+        data.transcription.transcript,
         'deepgram',
-        data.audioUrl,
         audioDuration
       );
-      
+  
       if (transcription) {
         toast.success('Transcription created successfully');
         navigate(`/transcription/${transcription.id}`);
@@ -90,11 +108,11 @@ export const TranscriptionForm = () => {
           required
         />
       </div>
-      
+
       <div>
         <label className="block text-sm font-medium">Audio</label>
         <AudioRecorder onAudioReady={handleAudioReady} />
-        
+
         {audioBlob && (
           <div className="mt-2 rounded-md bg-secondary/50 p-2 text-sm">
             <p>Audio ready for transcription</p>
@@ -103,19 +121,19 @@ export const TranscriptionForm = () => {
                 Duration: {Math.floor(audioDuration / 60)}:
                 {Math.floor(audioDuration % 60)
                   .toString()
-                  .padStart(2, '0')}
+                  .padStart(2, "0")}
               </p>
             )}
           </div>
         )}
       </div>
-      
+
       <button
         type="submit"
         disabled={isSubmitting || !audioBlob}
         className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? 'Transcribing...' : 'Transcribe Audio'}
+        {isSubmitting ? "Transcribing..." : "Transcribe Audio"}
       </button>
     </form>
   );
