@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Headphones } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { toast } from 'react-toastify';
-import { supabase } from '../lib/supabase';
-import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabase'; // Add this import
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -17,27 +16,6 @@ export const LoginPage = () => {
     useAuthStore.setState({ error: null }); // Clear errors
   }, []);
   
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        when: "beforeChildren",
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.4 }
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,62 +60,26 @@ export const LoginPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-secondary/20 p-4">
-      <motion.div 
-        className="w-full max-w-md rounded-lg border border-border bg-card p-8 shadow-sm"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
-      >
-        <motion.div 
-          className="mb-6 text-center"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={itemVariants}>
-            <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold">
-              <motion.div
-                animate={{ rotate: [0, 10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
-              >
-                <Headphones className="h-6 w-6 text-primary" />
-              </motion.div>
-              <span>AudioScribe</span>
-            </Link>
-          </motion.div>
-          <motion.h1 
-            className="mt-4 text-2xl font-bold"
-            variants={itemVariants}
-          >
-            Sign In
-          </motion.h1>
-          <motion.p 
-            className="mt-2 text-sm text-muted-foreground"
-            variants={itemVariants}
-          >
+      <div className="w-full max-w-md rounded-lg border border-border bg-card p-8 shadow-sm">
+        <div className="mb-6 text-center">
+          <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold">
+            <Headphones className="h-6 w-6 text-primary" />
+            <span>AudioScribe</span>
+          </Link>
+          <h1 className="mt-4 text-2xl font-bold">Sign In</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             Enter your credentials to access your account
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
 
         {error && (
-          <motion.div 
-            className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
             {error}
-          </motion.div>
+          </div>
         )}
 
-        <motion.form 
-          onSubmit={handleSubmit} 
-          className="space-y-4"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={itemVariants}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
             <label htmlFor="email" className="block text-sm font-medium">
               Email
             </label>
@@ -151,9 +93,9 @@ export const LoginPage = () => {
               required
               autoComplete="email"
             />
-          </motion.div>
+          </div>
 
-          <motion.div variants={itemVariants}>
+          <div>
             <div className="flex items-center justify-between">
               <label htmlFor="password" className="block text-sm font-medium">
                 Password
@@ -172,38 +114,26 @@ export const LoginPage = () => {
               required
               autoComplete="current-password"
             />
-          </motion.div>
+          </div>
 
-          <motion.button
+          <button
             type="submit"
             disabled={isLoading}
             className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-            variants={itemVariants}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
           >
             {isLoading ? 'Signing in...' : 'Sign In'}
-          </motion.button>
-        </motion.form>
+          </button>
+        </form>
 
-        <motion.div 
-          className="mt-6 text-center text-sm"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.4 }}
-        >
-          <motion.p 
-            className="text-muted-foreground"
-            variants={itemVariants}
-          >
+        <div className="mt-6 text-center text-sm">
+          <p className="text-muted-foreground">
             Don't have an account?{' '}
             <Link to="/register" className="text-primary hover:underline">
               Sign up
             </Link>
-          </motion.p>
-        </motion.div>
-      </motion.div>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

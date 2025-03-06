@@ -39,3 +39,50 @@ export const registerUser = async (email, password, fullName) => {
     throw new Error('Failed to register user: ' + error.message);
   }
 };
+
+/**
+ * Login an existing user.
+ */
+export const loginUser = async (email, password) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw new Error(error.message);
+
+    return data.user;
+  } catch (error) {
+    console.error('Error logging in:', error.message);
+    throw new Error('Failed to log in: ' + error.message);
+  }
+};
+
+/**
+ * Get the currently authenticated user.
+ */
+export const getUser = async () => {
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) throw new Error(error.message);
+    return data.user;
+  } catch (error) {
+    console.error('Error fetching user:', error.message);
+    throw new Error('Failed to fetch user: ' + error.message);
+  }
+};
+
+/**
+ * Logout the current user.
+ */
+export const logoutUser = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw new Error(error.message);
+    return { message: 'Logged out successfully' };
+  } catch (error) {
+    console.error('Error logging out:', error.message);
+    throw new Error('Failed to log out: ' + error.message);
+  }
+};

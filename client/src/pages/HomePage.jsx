@@ -1,11 +1,12 @@
-import React from "react";
-import { Link } from "react-router-dom"; // Fixed import
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { FileAudio, Headphones, MessageSquare, Upload } from "lucide-react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { motion } from "framer-motion";
+import { supabase } from "../lib/supabase.js"; // Ensure you import supabase
 
-// Animation variants
+// Animation variants (unchanged)
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: {
@@ -53,6 +54,18 @@ const stepVariant = {
 };
 
 export const HomePage = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+      }
+    };
+    fetchUser();
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -109,22 +122,24 @@ export const HomePage = () => {
                 </Link>
               </motion.div>
 
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  to="/login"
-                  className="rounded-md border border-input bg-background px-5 py-3 hover:bg-secondary/50"
+              {!user && (
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  Sign In
-                </Link>
-              </motion.div>
+                  <Link
+                    to="/login"
+                    className="rounded-md border border-input bg-background px-5 py-3 hover:bg-secondary/50"
+                  >
+                    Sign In
+                  </Link>
+                </motion.div>
+              )}
             </motion.div>
           </div>
         </section>
 
-        {/* Features Section */}
+        {/* Features Section (unchanged) */}
         <section className="py-16">
           <div className="container mx-auto px-4">
             <motion.h2
@@ -215,7 +230,7 @@ export const HomePage = () => {
           </div>
         </section>
 
-        {/* How It Works Section */}
+        {/* How It Works Section (unchanged) */}
         <section className="bg-secondary/20 py-16">
           <div className="container mx-auto px-4">
             <motion.h2
@@ -282,67 +297,69 @@ export const HomePage = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <motion.div
-              className="rounded-lg bg-primary/10 p-8 text-center md:p-12"
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, type: "spring" }}
-            >
+        {!user && (
+          <section className="py-16">
+            <div className="container mx-auto px-4">
               <motion.div
-                animate={{
-                  y: [0, -10, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
-              >
-                <Headphones className="mx-auto h-12 w-12 text-primary" />
-              </motion.div>
-
-              <motion.h2
-                className="mt-6 text-3xl font-bold"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
+                className="rounded-lg bg-primary/10 p-8 text-center md:p-12"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.2, duration: 0.5 }}
+                transition={{ duration: 0.7, type: "spring" }}
               >
-                Ready to Get Started?
-              </motion.h2>
-
-              <motion.p
-                className="mx-auto mt-4 max-w-2xl text-muted-foreground"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
-                Join thousands of users who are already saving time with
-                BolLikh's powerful transcription tools.
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  to="/register"
-                  className="mt-8 inline-flex rounded-md bg-primary px-5 py-3 text-primary-foreground hover:bg-primary/90"
+                <motion.div
+                  animate={{
+                    y: [0, -10, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
                 >
-                  Create Free Account
-                </Link>
+                  <Headphones className="mx-auto h-12 w-12 text-primary" />
+                </motion.div>
+
+                <motion.h2
+                  className="mt-6 text-3xl font-bold"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  Ready to Get Started?
+                </motion.h2>
+
+                <motion.p
+                  className="mx-auto mt-4 max-w-2xl text-muted-foreground"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                >
+                  Join thousands of users who are already saving time with
+                  BolLikh's powerful transcription tools.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link
+                    to="/register"
+                    className="mt-8 inline-flex rounded-md bg-primary px-5 py-3 text-primary-foreground hover:bg-primary/90"
+                  >
+                    Create Free Account
+                  </Link>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />
