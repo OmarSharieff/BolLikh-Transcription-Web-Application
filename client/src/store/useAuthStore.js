@@ -9,22 +9,22 @@ export const useAuthStore = create((set) => ({
   getUser: async () => {
     try {
       set({ isLoading: true, error: null });
-  
+
       const { data: { session } } = await supabase.auth.getSession();
-  
+
       if (!session) {
         set({ user: null, isLoading: false });
         return;
       }
-  
+
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
-  
+
       if (profileError) throw profileError;
-  
+
       set({
         user: {
           id: session.user.id,

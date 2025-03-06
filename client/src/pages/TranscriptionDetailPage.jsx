@@ -32,7 +32,7 @@ export const TranscriptionDetailPage = () => {
   useEffect(() => {
     if (currentTranscription) {
       setEditedTitle(currentTranscription.title);
-      setEditedContent(currentTranscription.content);
+      setEditedContent(currentTranscription.transcript);
     }
   }, [currentTranscription]);
 
@@ -48,7 +48,7 @@ export const TranscriptionDetailPage = () => {
     try {
       await updateTranscription(currentTranscription.id, {
         title: editedTitle,
-        content: editedContent,
+        transcript: editedContent,
       });
 
       setIsEditing(false);
@@ -62,7 +62,7 @@ export const TranscriptionDetailPage = () => {
     if (!currentTranscription) return;
 
     const element = document.createElement('a');
-    const file = new Blob([currentTranscription.content], { type: 'text/plain' });
+    const file = new Blob([currentTranscription.transcript], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
     element.download = `${currentTranscription.title}.txt`;
     document.body.appendChild(element);
@@ -212,7 +212,7 @@ export const TranscriptionDetailPage = () => {
                 placeholder="Transcription content"
               />
             ) : (
-              <div className="whitespace-pre-wrap">{currentTranscription.content}</div>
+              <div className="whitespace-pre-wrap">{currentTranscription.transcript}</div>
             )}
           </div>
         </div>

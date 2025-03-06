@@ -1,14 +1,14 @@
-import { supabase } from "../lib/supabase"; 
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import { toast } from "react-toastify";
-import { AudioRecorder } from "./AudioRecorder";
-import { useTranscriptionStore } from "../store/useTranscriptionStore";
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
+import { AudioRecorder } from './AudioRecorder';
+import { useTranscriptionStore } from '../store/useTranscriptionStore';
+import { supabase } from '../lib/supabase';
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const TranscriptionForm = () => {
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState('');
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioDuration, setAudioDuration] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,9 +21,7 @@ export const TranscriptionForm = () => {
 
     if (!title) {
       const now = new Date();
-      setTitle(
-        `Transcription ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`
-      );
+      setTitle(`Transcription ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`);
     }
   };
 
@@ -43,47 +41,54 @@ export const TranscriptionForm = () => {
     try {
       setIsSubmitting(true);
   
-      // ✅ Send the raw Blob instead of Base64
-      const formData = new FormData();
-      formData.append("audio", audioBlob, "recording.wav");
-      formData.append("title", title);
-      formData.append("duration", audioDuration);
-  
-      const { data: session } = await supabase.auth.getSession();
-      const token = session?.session?.access_token;
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
   
       if (!token) {
-        toast.error('You must be logged in to transcribe audio.');
-        setIsSubmitting(false);
-        return;
+        throw new Error('User not authenticated');
       }
   
-      const response = await fetch(`${API_URL}/api/transcriptions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`, // Keep Auth header
-        },
-        body: formData, // ✅ Send as FormData instead of JSON
-      });
+      // Convert the audio Blob to a Base64 string
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      reader.onloadend = async () => {
+        const base64Audio = reader.result.split(',')[1]; // Remove the data URL prefix
   
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to transcribe audio');
-      }
+        // Send the audio data to the backend
+        const response = await fetch(`${API_URL}/api/transcriptions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title,
+            audioData: base64Audio,
+            duration: audioDuration,
+          }),
+        });
   
-      const data = await response.json();
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to transcribe audio');
+        }
   
-      const transcription = await createTranscription(
-        title,
-        data.transcription.transcript,
-        'deepgram',
-        audioDuration
-      );
+        const data = await response.json();
   
-      if (transcription) {
-        toast.success('Transcription created successfully');
-        navigate(`/transcription/${transcription.id}`);
-      }
+        // Save the transcription to the database
+        const transcription = await createTranscription(
+          title,
+          data.transcript,
+          'assemblyai',
+          audioDuration
+        );
+  
+        if (transcription) {
+          toast.success('Transcription created successfully');
+          navigate(`/transcription/${transcription.id}`);
+        }
+      };
     } catch (error) {
       console.error('Error creating transcription:', error);
       toast.error(error.message || 'Failed to create transcription');
@@ -91,7 +96,7 @@ export const TranscriptionForm = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -121,7 +126,7 @@ export const TranscriptionForm = () => {
                 Duration: {Math.floor(audioDuration / 60)}:
                 {Math.floor(audioDuration % 60)
                   .toString()
-                  .padStart(2, "0")}
+                  .padStart(2, '0')}
               </p>
             )}
           </div>
@@ -133,7 +138,7 @@ export const TranscriptionForm = () => {
         disabled={isSubmitting || !audioBlob}
         className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Transcribing..." : "Transcribe Audio"}
+        {isSubmitting ? 'Transcribing...' : 'Transcribe Audio'}
       </button>
     </form>
   );
