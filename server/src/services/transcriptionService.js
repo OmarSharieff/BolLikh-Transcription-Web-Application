@@ -1,30 +1,21 @@
 import supabase from '../config/supabase.js';
-import deepgram from '../config/deepgram.js';
+import { assemblyAI } from '../config/assemblyai.js';
 
 export const createTranscription = async (userId, title, audioBuffer, duration) => {
   try {
-    console.log('Received audio buffer size:', audioBuffer.length);
+    console.log('🔹 Received audio buffer size:', audioBuffer.length);
 
-    // ✅ Send raw buffer to Deepgram
-    const response = await deepgram.listen.prerecorded.transcribeFile(
-      {
-        stream: audioBuffer, // ✅ Send raw audio buffer
-        mimetype: 'audio/wav',
-      },
-      {
-        smart_format: true,
-        punctuate: true,
-        diarize: true,
-      }
-    );
+    // Send audio buffer to AssemblyAI for transcription
+    console.log('🔹 Sending audio to AssemblyAI for transcription...');
+    const transcript = await assemblyAI.transcripts.transcribe({
+      audio: audioBuffer,
+    });
 
-    console.log('Deepgram API Response:', JSON.stringify(response, null, 2));
-
-    if (!response.results || !response.results.channels) {
-      throw new Error('Unexpected response from Deepgram API');
+    if (!transcript.text) {
+      throw new Error('AssemblyAI returned an empty transcription.');
     }
 
-    const transcript = response.results.channels[0].alternatives[0].transcript;
+    console.log('✅ AssemblyAI Transcription:', transcript.text);
 
     // Save transcription to database
     const { data, error } = await supabase
@@ -33,9 +24,9 @@ export const createTranscription = async (userId, title, audioBuffer, duration) 
         {
           user_id: userId,
           title,
-          transcript,
+          transcript: transcript.text,
+          api_used: 'assemblyai',
           duration,
-          api_used: 'deepgram',
         },
       ])
       .select();
@@ -46,12 +37,10 @@ export const createTranscription = async (userId, title, audioBuffer, duration) 
 
     return data[0];
   } catch (error) {
-    console.error('Deepgram Transcription Error:', error.message);
-    throw new Error('Deepgram API failed: ' + error.message);
+    console.error('❌ AssemblyAI Transcription Error:', error.message);
+    throw new Error('AssemblyAI API failed: ' + error.message);
   }
 };
-
-
 
 export const getTranscriptions = async (userId) => {
   const { data, error } = await supabase

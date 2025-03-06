@@ -10,9 +10,8 @@ import {
 import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() }); // ✅ Multer setup here
+const upload = multer({ storage: multer.memoryStorage() });
 
-// ✅ Use `upload.single('audio')` here in the route
 router.post('/', authMiddleware, upload.single('audio'), createTranscription);
 router.get('/', authMiddleware, getTranscriptions);
 router.get('/:id', authMiddleware, getTranscriptionById);

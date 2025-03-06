@@ -11,8 +11,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@deepgram/sdk": "^3.11.2",
     "@supabase/supabase-js": "^2.49.1",
+    "assemblyai": "^4.9.0",
+    "axios": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

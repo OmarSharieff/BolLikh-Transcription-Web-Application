@@ -11,30 +11,22 @@ export const createTranscription = async (req, res, next) => {
     const { title, audioData, duration } = req.body;
     const userId = req.user.id;
 
-    console.log('Request Headers:', req.headers);
-    console.log('Request Body:', req.body);
-    console.log('Received File:', req.file); //logging file to see if multer is actually receiving it
-
-    // ✅ Log incoming data
-    console.log('Received transcription request:', {
-      title,
-      duration,
-      userId,
-      audioDataLength: audioData ? audioData.length : 'No audio data',
-    });
-
     if (!audioData) {
       return res.status(400).json({ success: false, message: 'No audio data provided' });
     }
 
-    const transcription = await createTranscriptionService(userId, title, audioData, duration);
+    // Convert Base64 audio data to a buffer
+    const audioBuffer = Buffer.from(audioData, 'base64');
+
+    // Call the transcription service
+    const transcription = await createTranscriptionService(userId, title, audioBuffer, duration);
+
     res.status(201).json({ success: true, transcription });
   } catch (error) {
-    console.error('Error in createTranscription:', error); // ✅ Log the actual issue
+    console.error('Error in createTranscription:', error);
     res.status(500).json({ success: false, message: 'Failed to create transcription', error: error.message });
   }
 };
-
 
 export const getTranscriptions = async (req, res, next) => {
   try {
