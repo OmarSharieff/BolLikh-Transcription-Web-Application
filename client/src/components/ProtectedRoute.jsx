@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 
 export const ProtectedRoute = ({ children }) => {
-  const { user, isLoading } = useAuthStore(); // Remove `getUser` from destructuring
+  const { user, isLoading, getUser } = useAuthStore();
   const location = useLocation();
+
+  useEffect(() => {
+    // Reset error state and fetch user data when component mounts
+    useAuthStore.setState({ error: null });
+    getUser();
+  }, [getUser]);
 
   if (isLoading) {
     return (

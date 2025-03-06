@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Ensure correct import
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Headphones } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { toast } from 'react-toastify';
+import { supabase } from '../lib/supabase'; // Add this import
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signIn, isLoading, error } = useAuthStore();
   const navigate = useNavigate();
+  
+  // Clear any existing errors when component mounts
+  useEffect(() => {
+    useAuthStore.setState({ error: null });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
