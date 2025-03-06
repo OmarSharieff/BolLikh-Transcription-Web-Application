@@ -12,10 +12,11 @@ export const LoginPage = () => {
   const { signIn, isLoading, error } = useAuthStore();
   const navigate = useNavigate();
   
-  // Clear any existing errors when component mounts
   useEffect(() => {
-    useAuthStore.setState({ error: null });
+    useAuthStore.getState().getUser(); // Fetch user session on mount
+    useAuthStore.setState({ error: null }); // Clear errors
   }, []);
+  
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -40,12 +41,16 @@ export const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       useAuthStore.setState({ error: null }); // Reset error state before login attempt
       await signIn(email, password);
       toast.success('Successfully signed in!');
-      navigate('/dashboard');
+      
+      // Add a delay to ensure the user state is updated before navigating
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 500); // Adjust the delay as needed
     } catch (err) {
       if (err.message === 'Please confirm your email address before signing in.') {
         toast.error(

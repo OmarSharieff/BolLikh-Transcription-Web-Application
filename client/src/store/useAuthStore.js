@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 
 export const useAuthStore = create((set) => ({
   user: null,
-  isLoading: true,
+  isLoading: false,
   error: null,
 
   getUser: async () => {
@@ -17,26 +17,47 @@ export const useAuthStore = create((set) => ({
         return;
       }
 
+      // Fetch user profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle(); // Prevents error if no profile exists
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile fetch error:', profileError.message);
+        set({ user: null, isLoading: false });
+        return;
+      }
+
+      // If no profile exists, create one automatically
+      if (!profile) {
+        const { error: profileInsertError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              full_name: session.user.user_metadata?.full_name || '',
+            },
+          ]);
+
+        if (profileInsertError) {
+          console.error('Profile creation error:', profileInsertError.message);
+        }
+      }
 
       set({
         user: {
           id: session.user.id,
           email: session.user.email,
           full_name: profile?.full_name,
-          avatar_url: profile?.avatar_url,
         },
         isLoading: false,
       });
     } catch (error) {
       console.error('Error getting user:', error);
-      set({ error: 'Failed to get user', isLoading: false });
+      set({ user: null, isLoading: false });
     }
   },
 
@@ -58,64 +79,14 @@ export const useAuthStore = create((set) => ({
       }
 
       if (data.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        set({
-          user: {
-            id: data.user.id,
-            email: data.user.email,
-            full_name: profile?.full_name,
-            avatar_url: profile?.avatar_url,
-          },
-          isLoading: false,
-        });
+        await useAuthStore.getState().getUser(); // Fetch user profile after login
       }
+
+      set({ isLoading: false });
     } catch (error) {
       console.error('Error signing in:', error);
       set({ error: error?.message || 'Failed to sign in', isLoading: false });
       throw error;
-    }
-  },
-
-  signUp: async (email, password, fullName) => {
-    try {
-      set({ isLoading: true, error: null });
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        await supabase.from('profiles').insert({
-          id: data.user.id,
-          full_name: fullName,
-          updated_at: new Date().toISOString(),
-        });
-
-        set({
-          user: {
-            id: data.user.id,
-            email: data.user.email,
-            full_name: fullName,
-          },
-          isLoading: false,
-        });
-      }
-    } catch (error) {
-      console.error('Error signing up:', error);
-      set({ error: error?.message || 'Failed to sign up', isLoading: false });
     }
   },
 
@@ -132,5 +103,9 @@ export const useAuthStore = create((set) => ({
       console.error('Error signing out:', error);
       set({ error: error?.message || 'Failed to sign out', isLoading: false });
     }
+  },
+
+  clearErrors: () => {
+    set({ error: null });
   },
 }));

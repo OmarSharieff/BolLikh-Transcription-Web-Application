@@ -52,7 +52,7 @@ export const Header = () => {
             >
               <Headphones className="h-6 w-6 text-primary" />
             </motion.div>
-            <span>AudioScribe</span>
+            <span>BolLikh</span>
           </Link>
         </motion.div>
         

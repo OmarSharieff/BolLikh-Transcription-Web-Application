@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Headphones } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
@@ -7,17 +7,25 @@ export const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const { signUp, isLoading, error } = useAuthStore();
+  const [registerError, setRegisterError] = useState(null);
+  const { signUp, isLoading, error, clearErrors } = useAuthStore();
   const navigate = useNavigate();
+
+  // Clear any existing auth errors when the component mounts
+  useEffect(() => {
+    clearErrors();
+  }, [clearErrors]);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setRegisterError(null);
     
     try {
       await signUp(email, password, fullName);
       navigate('/dashboard');
     } catch (err) {
       console.error('Registration error:', err);
+      setRegisterError(err.message || 'Failed to create account');
     }
   };
   
@@ -35,9 +43,9 @@ export const RegisterPage = () => {
           </p>
         </div>
         
-        {error && (
+        {registerError && (
           <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
+            {registerError}
           </div>
         )}
         

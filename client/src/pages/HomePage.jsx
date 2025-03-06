@@ -76,7 +76,7 @@ export const HomePage = () => {
                     repeatDelay: 3,
                   }}
                 >
-                  AudioScribe
+                  BolLikh
                 </motion.span>
               </h1>
             </motion.div>
@@ -322,7 +322,7 @@ export const HomePage = () => {
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
                 Join thousands of users who are already saving time with
-                AudioScribe's powerful transcription tools.
+                BolLikh's powerful transcription tools.
               </motion.p>
 
               <motion.div
