@@ -61,6 +61,49 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  signUp: async (email, password, fullName) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      // Create a profile for the user
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
+              email: data.user.email,
+              full_name: fullName,
+            },
+          ]);
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError.message);
+        }
+
+        await useAuthStore.getState().getUser(); // Fetch user profile after signup
+      }
+
+      set({ isLoading: false });
+    } catch (error) {
+      console.error('Error signing up:', error);
+      set({ error: error?.message || 'Failed to create account', isLoading: false });
+      throw error;
+    }
+  },
+
   signIn: async (email, password) => {
     try {
       set({ isLoading: true, error: null });
