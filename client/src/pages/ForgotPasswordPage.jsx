@@ -38,7 +38,7 @@ export const ForgotPasswordPage = () => {
         <div className="mb-6 text-center">
           <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold">
             <Headphones className="h-6 w-6 text-primary" />
-            <span>AudioScribe</span>
+            <span>BolLikh</span>
           </Link>
           <h1 className="mt-4 text-2xl font-bold">Reset Your Password</h1>
           <p className="mt-2 text-sm text-muted-foreground">

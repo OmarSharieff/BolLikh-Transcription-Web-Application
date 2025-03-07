@@ -64,7 +64,7 @@ export const LoginPage = () => {
         <div className="mb-6 text-center">
           <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold">
             <Headphones className="h-6 w-6 text-primary" />
-            <span>AudioScribe</span>
+            <span>bolLikh</span>
           </Link>
           <h1 className="mt-4 text-2xl font-bold">Sign In</h1>
           <p className="mt-2 text-sm text-muted-foreground">
