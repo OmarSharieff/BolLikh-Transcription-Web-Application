@@ -2,7 +2,20 @@
 
 BolLikh is a modern, responsive web application for speech-to-text transcription services. It allows users to upload audio files, generate accurate transcriptions using AssemblyAI's powerful API, and manage their transcripts with ease.
 
-![BolLikh Screenshot](https://via.placeholder.com/800x400)
+## Homepage
+![BolLikh Homepage](images/homeImage.jpeg)
+
+## Dashboard
+![BolLikh Dashboard](images/transcriptLists.png)
+
+## Transcript Page
+![BolLikh Transcript Page](images/newTranscription.png)
+
+## Workflow Diagram
+![BolLikh Workflow Diagram](images/highlevelDiagram.png)
+
+## Database Schema
+![BolLikh Database Schema](images/database.png)
 
 ## Features
 
