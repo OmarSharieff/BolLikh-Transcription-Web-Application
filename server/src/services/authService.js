@@ -86,3 +86,39 @@ export const logoutUser = async () => {
     throw new Error('Failed to log out: ' + error.message);
   }
 };
+
+/**
+ * Send a password reset email to the user.
+ */
+export const resetPasswordRequest = async (email, redirectUrl) => {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
+    
+    if (error) throw new Error(error.message);
+    
+    return { message: 'Password reset email sent successfully' };
+  } catch (error) {
+    console.error('Error sending reset password email:', error.message);
+    throw new Error('Failed to send reset password email: ' + error.message);
+  }
+};
+
+/**
+ * Update the user's password.
+ */
+export const updatePassword = async (password) => {
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: password,
+    });
+    
+    if (error) throw new Error(error.message);
+    
+    return { message: 'Password updated successfully' };
+  } catch (error) {
+    console.error('Error updating password:', error.message);
+    throw new Error('Failed to update password: ' + error.message);
+  }
+};
