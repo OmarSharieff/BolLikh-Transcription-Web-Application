@@ -12,14 +12,14 @@ export const Footer = () => {
           
           <div className="flex items-center gap-4">
             <a
-              href="#"
+              href="https://github.com/OmarSharieff/BolLikh-Transcription-Web-Application"
               className="text-muted-foreground hover:text-foreground"
               aria-label="GitHub"
             >
               <Github className="h-5 w-5" />
             </a>
             <a
-              href="#"
+              href="https://x.com/omar_sharief_"
               className="text-muted-foreground hover:text-foreground"
               aria-label="Twitter"
             >

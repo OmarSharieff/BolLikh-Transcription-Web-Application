@@ -72,7 +72,7 @@ export const HomePage = () => {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-b from-background to-secondary/20 py-16 md:py-24">
+        <section className="bg-gradient-to-b from-background to-secondary/20 flex flex-col items-center justify-center h-screen">
           <div className="container mx-auto px-4 text-center">
             <motion.div initial="hidden" animate="visible" variants={fadeIn}>
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
@@ -140,7 +140,7 @@ export const HomePage = () => {
         </section>
 
         {/* Features Section (unchanged) */}
-        <section className="py-16">
+        <section className="flex flex-col items-center justify-center h-screen">
           <div className="container mx-auto px-4">
             <motion.h2
               className="text-center text-3xl font-bold"
@@ -231,7 +231,7 @@ export const HomePage = () => {
         </section>
 
         {/* How It Works Section (unchanged) */}
-        <section className="bg-secondary/20 py-16">
+        <section className="bg-secondary/20 flex flex-col items-center justify-center h-screen">
           <div className="container mx-auto px-4">
             <motion.h2
               className="text-center text-3xl font-bold"
@@ -298,7 +298,7 @@ export const HomePage = () => {
 
         {/* CTA Section */}
         {!user && (
-          <section className="py-16">
+          <section className="flex flex-col items-center justify-center h-screen">
             <div className="container mx-auto px-4">
               <motion.div
                 className="rounded-lg bg-primary/10 p-8 text-center md:p-12"
